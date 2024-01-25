@@ -6,9 +6,10 @@ const productListHtml = fs.readFileSync('./Template/product.html', 'utf-8');
 let products = JSON.parse(fs.readFileSync('./Data/products.json', 'utf8'));
 
 let productHtmlArray = products.map((prod) => {
+    
     let output = productListHtml.replace('{{%NAME%}}', prod.name);
     output = output.replace('{{%IMAGE%}}', prod.productImage);
-    output = output.replace('{{%MODELNAME%}}', prod.modelName);
+    output = output.replace('{{%MODELNAME%}}', prod.modeName);
     output = output.replace('{{%MODELNO%}}', prod.modelNumber);
     output = output.replace('{{%CAMERA%}}', prod.camera);
     output = output.replace('{{%SIZE%}}', prod.size);
@@ -18,8 +19,7 @@ let productHtmlArray = products.map((prod) => {
     return output;
 })
 
-console.log(productHtmlArray);
-
+console.log(productHtmlArray)
 
 const server = http.createServer((request, response) => {
     let path = request.url;
@@ -40,10 +40,11 @@ const server = http.createServer((request, response) => {
         response.end(html.replace('{{%CONTENT%}}', 'You are in about page'))
     } else if (path.toLocaleLowerCase() === '/products') {
         response.writeHead(200, {
-            'Content-Type': 'application/json'
+            'Content-Type': 'text/html'
         });
 
-        response.end('You are in products page');
+        console.log(productHtmlArray);
+        response.end(html.replace('{{%CONTENT%}}', productHtmlArray));
     } else {
         response.writeHead(404, {'Content-Type': 'text/html'})
     }
