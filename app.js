@@ -1,34 +1,22 @@
+// CORE MODULES
 const http = require('http');
 const fs = require('fs');
 const url = require('url');
 
+//CUSTOM MODULES
+const replaceHtml = require('./Modules/replaceHtml.js');
+
 const html = fs.readFileSync('./Template/index.html', 'utf-8');
 const productListHtml = fs.readFileSync('./Template/product.html', 'utf-8');
 let products = JSON.parse(fs.readFileSync('./Data/products.json', 'utf8'));
+let productDetailHtml = fs.readFileSync('./Template/product-details.html', 'utf8')
 
 
-
-function replaceHtml(template, product){
-    let output = template.replace('{{%NAME%}}', product.name);
-    output = output.replace('{{%IMAGE%}}', product.productImage);
-    output = output.replace('{{%MODELNAME%}}', product.modeName);
-    output = output.replace('{{%MODELNO%}}', product.modelNumber);
-    output = output.replace('{{%CAMERA%}}', product.camera);
-    output = output.replace('{{%SIZE%}}', product.size);
-    output = output.replace('{{%COLOR%}}', product.color);
-    output = output.replace('{{%PRICE%}}', product.price);
-    output = output.replace('{{%ID%}}', product.id);
-
-
-    return output;
-}
 
 const server = http.createServer((request, response) => {
     //let path = request.url;
 
     let {query, pathname: path} = url.parse(request.url, true);
-
-    /* console.log(query); */
 
     if(path === '/' || path.toLocaleLowerCase() === '/home'){
         response.writeHead(200, {
@@ -36,7 +24,7 @@ const server = http.createServer((request, response) => {
             'my-header' : 'Hello Alessandro'
         });
 
-        response.end(html.replace('{{%CONTENT%}}', productHtmlArray))
+        response.end('You are in homepage')
     } else if (path.toLocaleLowerCase() === '/about'){
         response.writeHead(200, {
             'Content-Type':'text/html',
@@ -46,18 +34,20 @@ const server = http.createServer((request, response) => {
         response.end(html.replace('{{%CONTENT%}}', 'You are in about page'))
     } else if (path.toLocaleLowerCase() === '/products') {
         if(!query.id){
-            products.map((prod) =>{
-                replaceHtml(productListHtml, prod)
+            productHtmlArray = products.map((product) =>{
+                return replaceHtml(productListHtml, product)
             })
 
-            response.writeHead(200, {
-                'Content-Type': 'text/html'
-            });
+            response.writeHead(200, {'Content-Type': 'text/html'});
     
             let productResponseHtml = html.replace('{{%CONTENT%}}', productHtmlArray.join(','))
+
             response.end(productResponseHtml);
+
         } else {
-            response.end('This is product with id = ' + query.id )
+            productId = products[query.id];
+            let productDetailResponseHtml = replaceHtml(productDetailHtml, productId);
+            response.end(html.replace('{{%CONTENT%}}', productDetailResponseHtml))
         }
 
 
